@@ -547,6 +547,14 @@ int main(int argc, char* argv[])
         1,1,1,1,1,1,1,1,1,1,1, // @@@@@@@@@@@
     };
     
+    Sprite dead;
+    dead.width = 1;
+    dead.height = 1;
+    dead.data = new uint8_t[1]
+    {
+        0
+    };
+    
     
     Sprite text_spritesheet;
     text_spritesheet.width = 5;
@@ -789,7 +797,18 @@ int main(int argc, char* argv[])
             buffer_draw_sprite(&buffer, player_sprite, xp, 7, rgb_to_uint32(50, 90, 255));
             xp += player_sprite.width + 2;
         }
-        
+            
+        if(game.ufo.life == 0)
+        {
+            buffer_draw_sprite(&buffer, alien_death_sprite, game.ufo.x, game.ufo.y, rgb_to_uint32(180, 0, 0));
+            game.ufo.x -= (alien_death_sprite.width - ufo_sprite.width)/2;
+            buffer_draw_sprite(&buffer, alien_death_sprite, game.ufo.x, game.ufo.y, rgb_to_uint32(0, 0, 0));
+        }
+        else
+        {
+            buffer_draw_sprite(&buffer, ufo_sprite, game.ufo.x, game.ufo.y, rgb_to_uint32(0, 128, 0));
+        }
+            
         for(size_t i = 0; i < game.width; ++i)
         {
             buffer.data[game.width * 16 + i] = rgb_to_uint32(255, 255, 255);
@@ -825,7 +844,6 @@ int main(int argc, char* argv[])
             }
             buffer_draw_sprite(&buffer, *sprite, bullet.x, bullet.y, rgb_to_uint32(0, 200, 0));
         }
-        buffer_draw_sprite(&buffer, ufo_sprite, game.ufo.x, game.ufo.y, rgb_to_uint32(0, 128, 0));
         buffer_draw_sprite(&buffer, player_sprite, game.player.x, game.player.y, rgb_to_uint32(50, 90, 255));
             
         glTexSubImage2D(
@@ -940,16 +958,12 @@ int main(int argc, char* argv[])
                 
                 //UFO hit
                 bool overlap = sprite_overlap_check(player_bullet_sprite, game.bullets[bi].x, game.bullets[bi].y, ufo_sprite, game.ufo.x, game.ufo.y);
+                if(game.ufo.life == 0) continue;
                 if (overlap) {
                     score += 50;
-                    if(game.ufo.life == 0){
-                        game.ufo.x -= (alien_death_sprite.width - ufo_sprite.width)/2;
-                        buffer_draw_sprite(&buffer, alien_death_sprite, game.ufo.x, game.ufo.y, rgb_to_uint32(180, 0, 0));
-                    }
                     game.bullets[bi] = game.bullets[game.num_bullets - 1];
                     --game.num_bullets;
                     --game.ufo.life;
-                    printf("%d\n", game.ufo.life);
                     break;
                 }
             }
@@ -1054,7 +1068,6 @@ int main(int argc, char* argv[])
         
         if (ufo_move_dir != 0)
         {
-//            printf("%d\n", game.ufo.x);
             if (game.ufo.x + ufo_sprite.width + ufo_move_dir >= game.width)
             {
                 game.ufo.x = game.width - ufo_sprite.width;
