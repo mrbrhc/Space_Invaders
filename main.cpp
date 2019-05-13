@@ -6,6 +6,7 @@
 
 bool game_running = false;
 int move_dir = 0;
+int u_move_dir = -1;
 bool fire_pressed = 0;
 bool begin = 0;
 
@@ -133,6 +134,13 @@ struct Player
     size_t life;
 };
 
+struct Ufo
+{
+    size_t x, y;
+    size_t life;
+    int dir;
+};
+
 #define GAME_MAX_BULLETS 128
 
 struct Game
@@ -141,6 +149,7 @@ struct Game
     size_t num_aliens;
     size_t num_bullets;
     Alien* aliens;
+    Ufo ufo;
     Player player;
     Bullet bullets[GAME_MAX_BULLETS];
 };
@@ -495,18 +504,19 @@ int main(int argc, char* argv[])
         0,0,1,1,0,0,0,0,1,1,0,0  // ..@@....@@..
     };
     
-    alien_sprites[6].width = 12;
-    alien_sprites[6].height = 8;
-    alien_sprites[6].data = new uint8_t[96]
+    Sprite ufo_sprite;
+    ufo_sprite.width = 12;
+    ufo_sprite.height = 8;
+    ufo_sprite.data = new uint8_t[96]
     {
         0,0,0,0,0,1,1,0,0,0,0,0, // .....@@.....
         0,0,0,1,1,1,1,1,1,0,0,0, // ...@@@@@@...
         0,1,1,1,1,1,1,1,1,1,1,0, // .@@@@@@@@@@.
-        1,1,0,0,1,1,1,1,0,0,1,1, // @@..@@@@..@@
+        1,1,0,0,1,0,0,1,0,0,1,1, // @@..@..@..@@
         1,1,1,1,1,1,1,1,1,1,1,1, // @@@@@@@@@@@@
-        0,1,1,1,1,1,1,1,1,1,1,0, // .@@@@@@@@@@.
-        0,0,0,1,1,0,0,1,1,0,0,0, // ...@@..@@...
-        0,0,1,1,0,0,0,0,1,1,0,0  // ..@@....@@..
+        1,1,1,1,1,1,1,1,1,1,1,1, // @@@@@@@@@@@@
+        0,1,1,1,0,1,1,0,1,1,1,0, // .@@@.@@.@@@.
+        0,0,1,0,0,0,0,0,0,1,0,0  // ..@......@..
     };
     
     Sprite alien_death_sprite;
@@ -679,6 +689,11 @@ int main(int argc, char* argv[])
     
     game.player.life = 3;
     
+    game.ufo.x = game.width - ufo_sprite.width;
+    game.ufo.y = 215;
+    
+    game.ufo.life = 3;
+    
     size_t alien_swarm_position = 24;
     size_t alien_swarm_max_position = game.width - 16 * 11 - 3;
     
@@ -711,6 +726,8 @@ int main(int argc, char* argv[])
     
     int alien_move_dir = 4;
     
+    int ufo_move_dir = 4;
+    
     size_t score = 0;
     size_t credits = 0;
     
@@ -721,6 +738,8 @@ int main(int argc, char* argv[])
     {
             buffer_clear(&buffer, clear_color);
         if (begin == false && game.player.life != 0) {
+            score = 0;
+            game.player.life = 3;
             buffer_draw_text(&buffer, text_spritesheet, "PRESS ENTER TO BEGIN", game.width / 2 - 60, game.height / 2, rgb_to_uint32(255, 255, 255));
             
             glTexSubImage2D(
@@ -733,8 +752,8 @@ int main(int argc, char* argv[])
             
             glfwSwapBuffers(window);
             
-        } else if(game.player.life == 0) {
-//            begin = false;
+        } else if(begin == true && game.player.life == 0) {
+            begin = false;
             buffer_draw_text(&buffer, text_spritesheet, "GAME OVER", game.width / 2 - 30, game.height / 2, rgb_to_uint32(255, 255, 255));
             buffer_draw_text(&buffer, text_spritesheet, "SCORE", 4, game.height - text_spritesheet.height - 7, rgb_to_uint32(255, 255, 255));
             buffer_draw_number(&buffer, number_spritesheet, score, 4 + 2 * number_spritesheet.width, game.height - 2 * number_spritesheet.height - 12, rgb_to_uint32(128, 0, 0));
@@ -806,7 +825,7 @@ int main(int argc, char* argv[])
             }
             buffer_draw_sprite(&buffer, *sprite, bullet.x, bullet.y, rgb_to_uint32(0, 200, 0));
         }
-        
+        buffer_draw_sprite(&buffer, ufo_sprite, game.ufo.x, game.ufo.y, rgb_to_uint32(0, 128, 0));
         buffer_draw_sprite(&buffer, player_sprite, game.player.x, game.player.y, rgb_to_uint32(50, 90, 255));
             
         glTexSubImage2D(
@@ -818,6 +837,13 @@ int main(int argc, char* argv[])
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
         
         glfwSwapBuffers(window);
+        
+//            for (size_t ui = 0; ui < ; ++ui) {
+//        game.ufo.x += game.ufo.dir;
+//        if (game.ufo.x >= game.width) {
+//                game.ufo
+//            }
+//        }
         
         // Simulate bullets
         for(size_t bi = 0; bi < game.num_bullets; ++bi)
@@ -910,6 +936,21 @@ int main(int argc, char* argv[])
                         
                         break;
                     }
+                }
+                
+                //UFO hit
+                bool overlap = sprite_overlap_check(player_bullet_sprite, game.bullets[bi].x, game.bullets[bi].y, ufo_sprite, game.ufo.x, game.ufo.y);
+                if (overlap) {
+                    score += 50;
+                    if(game.ufo.life == 0){
+                        game.ufo.x -= (alien_death_sprite.width - ufo_sprite.width)/2;
+                        buffer_draw_sprite(&buffer, alien_death_sprite, game.ufo.x, game.ufo.y, rgb_to_uint32(180, 0, 0));
+                    }
+                    game.bullets[bi] = game.bullets[game.num_bullets - 1];
+                    --game.num_bullets;
+                    --game.ufo.life;
+                    printf("%d\n", game.ufo.life);
+                    break;
                 }
             }
         }
@@ -1008,6 +1049,28 @@ int main(int argc, char* argv[])
             }
             else game.player.x += player_move_dir;
         }
+            
+        ufo_move_dir = u_move_dir;
+        
+        if (ufo_move_dir != 0)
+        {
+//            printf("%d\n", game.ufo.x);
+            if (game.ufo.x + ufo_sprite.width + ufo_move_dir >= game.width)
+            {
+                game.ufo.x = game.width - ufo_sprite.width;
+                u_move_dir *= -1;
+            }
+            else if ((int)game.ufo.x + ufo_move_dir <= 0)
+            {
+                game.ufo.x = 0;
+                u_move_dir *= -1;
+            }
+            else
+            {
+                game.ufo.x += ufo_move_dir;
+                ufo_move_dir -= 1;
+            }
+        }
         
         if(aliens_killed < game.num_aliens)
         {
@@ -1080,6 +1143,7 @@ int main(int argc, char* argv[])
     delete[] alien_bullet_sprite[0].data;
     delete[] alien_bullet_sprite[1].data;
     delete[] alien_bullet_animation.frames;
+    delete[] ufo_sprite.data;
     
     for(size_t i = 0; i < 3; ++i)
     {
