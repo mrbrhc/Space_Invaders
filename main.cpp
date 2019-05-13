@@ -9,7 +9,18 @@ int move_dir = 0;
 int u_move_dir = -1;
 bool fire_pressed = 0;
 bool begin = 0;
-
+/*Space Invaders is an arcade game that first came out in the late 70’s.
+It was originally created as a 2D top down shooter where the player can 
+maneuver left and right while trying to stop a large mass of alien ships 
+from reaching the players position. The way the player stops the oncoming 
+aliens is by shooting them while moving left and right to avoid incoming 
+fire from the mass of aliens. The player can earn points for each alien 
+ship the player destroys. The more aliens that are destroyed, the faster 
+they move and the more often they shoot back at the player. The game goes 
+until the player is hit 3 times eliminating all three of the players lives 
+or the player eliminates all of the alien ships before they reach the players 
+position. When one of these game ending scenarios happens, your score will be saved.
+*/
 #define GL_ERROR_CASE(glerror)\
 case glerror: snprintf(error, sizeof(error), "%s", #glerror)
 
@@ -59,6 +70,12 @@ bool validate_program(GLuint program){
     
     return true;
 }
+
+/*
+Callbacks were used as in the homework assignments. Examples are simple
+as left/right keys move player left and right. Space bar signals for the 
+player to fire. Enter starts the game and Escape Closes the window.
+*/
 
 void error_callback(int error, const char* description)
 {
@@ -415,6 +432,13 @@ int main(int argc, char* argv[])
     glActiveTexture(GL_TEXTURE0);
     
     glBindVertexArray(fullscreen_triangle_vao);
+    
+    /*
+    we created sprites where the sprites are represented as a bitmap.
+    We illustrate the sprite in with a map of 8x8,11x8,11x7,13x8,12x8
+    (3 alien ships,1 ship explosion,1 player ship) 
+    These models were taken from and example that gave a tutorial on creating basic sprites
+    */
     
     // Prepare game
     Sprite alien_sprites[7];
