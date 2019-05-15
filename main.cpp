@@ -829,7 +829,6 @@ int main(int argc, char* argv[])
         else if (begin == true && game_object.User_Player.live_total == 0) {
             //game over from dying
             //show game over and score screen
-            begin = false;
             buffer_draw_text(&buffer, text_spritesheet, "GAME OVER", game_object.width / 2 - 30, game_object.height / 2, rgb_to_uint32(255, 255, 255));
             buffer_draw_text(&buffer, text_spritesheet, "SCORE", 4, game_object.height - text_spritesheet.height - 7, rgb_to_uint32(255, 255, 255));
             buffer_draw_number(&buffer, number_spritesheet, score, 4 + 2 * number_spritesheet.width, game_object.height - 2 * number_spritesheet.height - 12, rgb_to_uint32(128, 0, 0));
