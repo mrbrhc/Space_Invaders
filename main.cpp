@@ -23,7 +23,7 @@ bool begin = 0;
  */
 #define GL_ERROR_CASE(glerror)\
 case glerror: snprintf(error, sizeof(error), "%s", #glerror)
-
+//debug
 inline void gl_debug(const char *file, int line) {
     GLenum err;
     while ((err = glGetError()) != GL_NO_ERROR) {
@@ -44,7 +44,7 @@ inline void gl_debug(const char *file, int line) {
 }
 
 #undef GL_ERROR_CASE
-
+//validate shader
 void validate_shader(GLuint shader, const char *file = 0) {
     static const unsigned int BUFFER_SIZE = 512;
     char buffer[BUFFER_SIZE];
@@ -56,7 +56,7 @@ void validate_shader(GLuint shader, const char *file = 0) {
         printf("Shader %d(%s) compile error: %s\n", shader, (file ? file : ""), buffer);
     }
 }
-
+//validate program
 bool validate_program(GLuint program) {
     static const GLsizei BUFFER_SIZE = 512;
     GLchar buffer[BUFFER_SIZE];
@@ -84,7 +84,7 @@ void error_callback(int error, const char* description)
 }
 //callback key
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    
+    //second set of controls added
     switch (key) {
         case GLFW_KEY_ESCAPE:
             if (action == GLFW_PRESS) game_object_is_running = false;
@@ -120,7 +120,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             break;
     }
 }
-
+//algorithm from tutorial
 /* Algorithm "xor" from p. 4 of Marsaglia, "Xorshift RNGs" */
 uint32_t xorshift32(uint32_t* rng)
 {
@@ -137,46 +137,46 @@ double random(uint32_t* rng)
     //return xorshift32
     return (double)xorshift32(rng) / std::numeric_limits<uint32_t>::max();
 }
-
+//struct for buffer
 struct Buffer
 {
     size_t width, height;
     uint32_t* data;
 };
-
+//struct for sprite
 struct Sprite
 {
     size_t width, height;
     uint8_t* data;
 };
-
+//struct for alien
 struct Alien
 {
     size_t x, y;
     uint8_t type;
 };
-
+//struct for projectile
 struct Projectile
 {
     size_t x, y;
     int direction;
 };
-
+//struct for player
 struct User_Player
 {
     size_t x, y;
     size_t live_total;
 };
-
+//struct for alien ships
 struct Alien_Ship
 {
     size_t x, y;
     size_t live_total;
     int direction;
 };
-
+//limit max projectiles to not overload
 #define MAX_PROJECTILES 128
-
+//struct for game
 struct game_object
 {
     //struct for game with width, height, remaining_aliens, num_Projectiles, aliens, Alien_Ship, User_Player, Projectiles[]
@@ -195,7 +195,7 @@ struct game_object
     User_Player User_Player;
     Projectile Projectiles[MAX_PROJECTILES];
 };
-
+//struct for animations
 struct SpriteAnimation
 {
     //struct for sprite animation
@@ -210,7 +210,7 @@ struct SpriteAnimation
     size_t game_object_time;
     Sprite** frames;
 };
-
+//enum for the alien types
 enum AlienType : uint8_t
 {
     /*ALIEN_DEAD = 0,
@@ -222,7 +222,7 @@ enum AlienType : uint8_t
     ALIEN_TYPE_B = 2,
     ALIEN_TYPE_C = 3
 };
-
+//buffer clear
 void buffer_clear(Buffer* buffer, uint32_t color)
 {
     for (size_t i = 0; i < buffer->width * buffer->height; i++)
@@ -230,7 +230,7 @@ void buffer_clear(Buffer* buffer, uint32_t color)
         buffer->data[i] = color;
     }
 }
-
+//check for overlap
 bool sprite_overlap_check(
                           const Sprite& sp_a, size_t x_a, size_t y_a,
                           const Sprite& sp_b, size_t x_b, size_t y_b
@@ -262,7 +262,7 @@ void buffer_draw_sprite(Buffer* buffer, const Sprite& sprite, size_t x, size_t y
         }
     }
 }
-
+//buffer draw number
 void buffer_draw_number(
                         Buffer* buffer,
                         const Sprite& number_spritesheet, size_t number,
@@ -290,7 +290,7 @@ void buffer_draw_number(
         xp += sprite.width + 1;
     }
 }
-
+//buffer draw text
 void buffer_draw_text(
                       Buffer* buffer,
                       const Sprite& text_spritesheet,
@@ -311,14 +311,19 @@ void buffer_draw_text(
         xp += sprite.width + 1;
     }
 }
-
+//convert rgb to unsigned int 32
 uint32_t rgb_to_uint32(uint8_t r, uint8_t g, uint8_t b)
 {
     return (r << 24) | (g << 16) | (b << 8) | 255;
 }
 
+//START MAIN
+/////////////////////////////////////////////////////////////////////////////////////
+
+
 int main(int argc, char* argv[])
 {
+ //set buffer size for height and width
     const size_t buffer_width = 224;
     const size_t buffer_height = 256;
     
@@ -332,7 +337,7 @@ int main(int argc, char* argv[])
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     
     /* Create a windowed mode window and its OpenGL context */
-    GLFWwindow* window = glfwCreateWindow(2 * buffer_width, 2 * buffer_height, "Space Invaders", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(2 * buffer_width, 2 * buffer_height, "Space Invaders 4610", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -342,7 +347,7 @@ int main(int argc, char* argv[])
     glfwSetKeyCallback(window, key_callback);
     
     glfwMakeContextCurrent(window);
-    
+    //error checking
     GLenum err = glewInit();
     if (err != GLEW_OK)
     {
@@ -350,13 +355,13 @@ int main(int argc, char* argv[])
         glfwTerminate();
         return -1;
     }
-    
+    //gl version
     int glVersion[2] = { -1, 1 };
     glGetIntegerv(GL_MAJOR_VERSION, &glVersion[0]);
     glGetIntegerv(GL_MINOR_VERSION, &glVersion[1]);
     
     gl_debug(__FILE__, __LINE__);
-    
+    //for console window
     printf("Using OpenGL: %d.%d\n", glVersion[0], glVersion[1]);
     printf("Renderer used: %s\n", glGetString(GL_RENDERER));
     printf("Shading Language: %s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
@@ -444,7 +449,7 @@ int main(int argc, char* argv[])
     }
     
     glLinkProgram(shader_id);
-    
+    //make sure shader id is validated
     if (!validate_program(shader_id)) {
         fprintf(stderr, "Error while validating shader.\n");
         glfwTerminate();
@@ -795,16 +800,16 @@ int main(int argc, char* argv[])
     
     uint32_t clear_color = rgb_to_uint32(0, 0, 0);
     uint32_t rng = 13;
-    
+    //set move directions
     int alien_direction_move = 4;
     
     int Alien_Ship_direction_move = 4;
-    
+    //set score and credits
     size_t score = 0;
     size_t credits = 0;
-    
+    //start game running
     game_object_is_running = true;
-    
+    //set player move direction
     int User_Player_direction_move = 0;
     while (!glfwWindowShouldClose(window) && game_object_is_running)
     {
@@ -828,6 +833,7 @@ int main(int argc, char* argv[])
         }
         else if (begin == true && game_object.User_Player.live_total == 0) {
             //game over from dying
+            //when the game is over
             //show game over and score screen
             buffer_draw_text(&buffer, text_spritesheet, "GAME OVER", game_object.width / 2 - 30, game_object.height / 2, rgb_to_uint32(255, 255, 255));
             buffer_draw_text(&buffer, text_spritesheet, "SCORE", 4, game_object.height - text_spritesheet.height - 7, rgb_to_uint32(255, 255, 255));
@@ -951,7 +957,7 @@ int main(int argc, char* argv[])
                         --game_object.User_Player.live_total;
                         game_object.Projectiles[bi] = game_object.Projectiles[game_object.num_Projectiles - 1];
                         --game_object.num_Projectiles;
-                        //NOTE: The rest of the frame is still going to be simulated.
+                        
                         //perhaps we need to check if the game_object is over or not.
                         break;
                     }
@@ -1007,7 +1013,7 @@ int main(int argc, char* argv[])
                         {
                             score += 10 * (4 - game_object.aliens[ai].type);
                             game_object.aliens[ai].type = ALIEN_DEAD;
-                            // NOTE: Hack to recenter death sprite
+                            
                             game_object.aliens[ai].x -= (alien_death_sprite.width - alien_sprite.width) / 2;
                             game_object.Projectiles[bi] = game_object.Projectiles[game_object.num_Projectiles - 1];
                             --game_object.num_Projectiles;
@@ -1019,7 +1025,7 @@ int main(int argc, char* argv[])
                         }
                     }
                     
-                    //Alien_Ship hit
+                    //Alien_Ship hit by checking overlap then checking overlap of pixel positions
                     bool overlap = sprite_overlap_check(User_Player_Projectile_sprite, game_object.Projectiles[bi].x, game_object.Projectiles[bi].y, Alien_Ship_sprite, game_object.Alien_Ship.x, game_object.Alien_Ship.y);
                     if (game_object.Alien_Ship.live_total == 0) continue;
                     if (overlap) {
@@ -1031,7 +1037,7 @@ int main(int argc, char* argv[])
                     }
                 }
             }
-            // Simulate aliens
+            // Simulate aliens, if there are less aliens, they increase in speed and begin to fire more frequently
             if (should_change_speed)
             {
                 should_change_speed = false;
@@ -1042,7 +1048,8 @@ int main(int argc, char* argv[])
                 }
             }
             
-            // Update death counters
+            // Update death counters, the higher the death counter is, the more the aliens fire and the faster they move and 
+            //change frames for the animation
             for (size_t ai = 0; ai < game_object.remaining_aliens; ai++)
             {
                 const Alien& alien = game_object.aliens[ai];
@@ -1094,6 +1101,8 @@ int main(int argc, char* argv[])
             }
             
             // Update animations
+            //this goes with the speed, if the speed is increased from less aliens left alive
+            //the aliens will move faster, change animation quicker and fire more freqently.
             for (size_t i = 0; i < 3; i++)
             {
                 ++alien_animation[i].game_object_time;
@@ -1111,6 +1120,8 @@ int main(int argc, char* argv[])
             ++alien_update_game_object_timer;
             
             // Simulate User_Player
+            //this goes with the speed, if the speed is increased from less aliens left alive
+            //the aliens will move faster, change animation quicker and fire more freqently.
             User_Player_direction_move = 2 * direction_move;
             
             if (User_Player_direction_move != 0)
@@ -1128,6 +1139,8 @@ int main(int argc, char* argv[])
             
             Alien_Ship_direction_move = u_direction_move;
             //Simulate Alien_ship movement
+            //this goes with the speed, if the speed is increased from less aliens left alive
+            //the aliens will move faster, change animation quicker and fire more freqently.
             if (Alien_Ship_direction_move != 0)
             {
                 if (game_object.Alien_Ship.x + Alien_Ship_sprite.width + Alien_Ship_direction_move >= game_object.width)
@@ -1161,6 +1174,8 @@ int main(int argc, char* argv[])
                 if (pos > alien_swarm_max_position) alien_swarm_max_position = pos;
             }
             //Reset swarm when all aliens are killed
+            //this is where we could implement more level design if more time was given. 
+            //the next level is almost the same as the first level.
             else
             {
                 alien_update_frequency = 120;
@@ -1190,7 +1205,7 @@ int main(int argc, char* argv[])
                 }
             }
             
-            // Process events
+            // Process events such as fire, max mojectiles, player movement
             if (fire_is_pressed && game_object.num_Projectiles < MAX_PROJECTILES)
             {
                 game_object.Projectiles[game_object.num_Projectiles].x = game_object.User_Player.x + User_Player_sprite.width / 2;
@@ -1230,4 +1245,5 @@ int main(int argc, char* argv[])
     delete[] death_counters;
     
     return 0;
+ //END
 }
