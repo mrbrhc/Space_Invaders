@@ -1246,4 +1246,16 @@ int main(int argc, char* argv[])
     
     return 0;
  //END
+ /*Space Invaders is an arcade game that first came out in the late 70’s.
+ It was originally created as a 2D top down shooter where the User_Player can
+ maneuver left and right while trying to stop a large mass of alien ships
+ from reaching the User_Players position. The way the player stops the oncoming
+ aliens is by shooting them while moving left and right to avoid incoming
+ fire from the mass of aliens. The player can earn points for each alien
+ ship the player destroys. The more aliens that are destroyed, the faster
+ they move and the more often they shoot back at the player. The game goes
+ until the player is hit 3 times eliminating all three of the player lives
+ or the User_Player eliminates all of the alien ships before they reach the player
+ position. When one of these game ending scenarios happens, your score will be saved.
+ */
 }
